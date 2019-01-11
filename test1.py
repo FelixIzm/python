@@ -13,7 +13,7 @@ async def main(URL):
         global cookies
         cookies = {'JSESSIONID': s.cookies["JSESSIONID"], "3fbe47cd30daea60fc16041479413da2":s.cookies["3fbe47cd30daea60fc16041479413da2"]}
         def do_req():
-            return requests.get(URL,cookies=cookies)
+            return requests.get(URL,cookies=cookies, headers = {'User-agent': 'Internet Explorer/2.0'})
         future2 = loop.run_in_executor(None, do_req )
         response = await future2
         print('status_code_1={}'.format(response.status_code))
@@ -44,7 +44,7 @@ async def fetch_async(pid):
     future1 = loop.run_in_executor(None, do_req )
     response = await future1
     cook = response.cookies.keys()
-    #print(cook)
+    print('{} {}'.format(response.status_code, response.cookies.keys()))
     #response.close()
     return response.status_code
 
@@ -53,7 +53,7 @@ async def asynchronous():
     futures = [fetch_async(i) for i in range(0, int(countPages)+1)]
     for i, future in enumerate(asyncio.as_completed(futures)):
         result = await future
-        print('{} {} '.format(i, result))
+        #print('{} {} '.format(i, result))
 
 
 loop.run_until_complete(asynchronous())
