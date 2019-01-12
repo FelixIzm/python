@@ -21,7 +21,7 @@ async def main(URL):
         headers['method']='GET'
         headers['authority']='obd-memorial.ru'
         def do_req():
-            return requests.get(URL,cookies=cookies)
+            return requests.get(URL,cookies=cookies, headers = {'User-agent': 'Internet Explorer/2.0'})
         future2 = loop.run_in_executor(None, do_req )
         response = await future2
         print('status_code_1={}'.format(response.status_code))
@@ -52,7 +52,11 @@ async def fetch_async(pid):
     future1 = loop.run_in_executor(None, do_req )
     response = await future1
     cook = response.cookies.keys()
+<<<<<<< HEAD
     print('{} {} '.format(response.status_code,cookies))
+=======
+    print('{} {}'.format(response.status_code, response.cookies.keys()))
+>>>>>>> f05e1362cf2227294a9c6602092e63f750ece0e8
     #response.close()
     return response.status_code
 
