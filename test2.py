@@ -4,7 +4,7 @@ import asyncio, random
 
 secret_cookie=''
 loop = asyncio.get_event_loop()
-fxReq = '/search.htm?f=пеплов&n=&s=&y=&r='
+fxReq = '/search.htm?f=пепед&n=&s=&y=&r='
 print(fxReq)
 URL = "https://obd-memorial.ru/html"+fxReq
 cookies = {}

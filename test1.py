@@ -3,15 +3,23 @@ import requests, re
 import asyncio, random
 
 loop = asyncio.get_event_loop()
-URL = "https://obd-memorial.ru/html/search.htm?f=пеплов&n=&s=&y=&r="
+path = '/html/search.htm?f=пеплов&n=&s=&y=&r='
+URL = "https://obd-memorial.ru"+path
 cookies = {}
 countPages = ""
 async def main(URL):
+    global path
     future1 = loop.run_in_executor(None, requests.get, URL)
     s = await future1
     if(s.status_code==307):
         global cookies
         cookies = {'JSESSIONID': s.cookies["JSESSIONID"], "3fbe47cd30daea60fc16041479413da2":s.cookies["3fbe47cd30daea60fc16041479413da2"]}
+        headers = dict()
+        headers['user-agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+        #headers['cookie'] = cookies
+        headers['path'] = path
+        headers['method']='GET'
+        headers['authority']='obd-memorial.ru'
         def do_req():
             return requests.get(URL,cookies=cookies)
         future2 = loop.run_in_executor(None, do_req )
@@ -44,7 +52,7 @@ async def fetch_async(pid):
     future1 = loop.run_in_executor(None, do_req )
     response = await future1
     cook = response.cookies.keys()
-    #print(cook)
+    print('{} {} '.format(response.status_code,cookies))
     #response.close()
     return response.status_code
 
@@ -53,7 +61,7 @@ async def asynchronous():
     futures = [fetch_async(i) for i in range(0, int(countPages)+1)]
     for i, future in enumerate(asyncio.as_completed(futures)):
         result = await future
-        print('{} {} '.format(i, result))
+        #print('{} {} '.format(i, result))
 
 
 loop.run_until_complete(asynchronous())
