@@ -4,7 +4,7 @@ import asyncio, random
 
 secret_cookie=sessionid=''
 loop = asyncio.get_event_loop()
-fxReq = '/search.htm?f=пеплов&n=&s=&y=&r='
+fxReq = '/search.htm?f=&n=&s=&y=&r='
 print(fxReq)
 URL = "https://obd-memorial.ru/html"+fxReq
 cookies = {}
@@ -15,7 +15,7 @@ headers['Accept']='text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0
 headers['Accept-Language']='ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3'
 headers['Accept-Encoding']='gzip, deflate, br'
 headers['Connection']='keep-alive'
-headers['Upgrade-Insecure-Requests']='1'
+#headers['Upgrade-Insecure-Requests']='1'
 headers['Pragma']='no-cache'
 headers['Cache-Control']='no-cache'
 
@@ -38,7 +38,7 @@ async def main(URL):
             return session.get(URL,cookies=cookies, headers = headers)
         future2 = loop.run_in_executor(None, do_req )
         response = await future2
-        print(response.cookies)
+        #print(response.cookies)
         print('status_code_1={}'.format(response.status_code))
         match = re.search(r'countPages = \d+',response.text,)
         if match:
@@ -70,13 +70,18 @@ async def fetch_async(pid):
     future1 = loop.run_in_executor(None, do_req )
     response = await future1
     #print('{} {}'.format(response.status_code, response.cookies.keys()))
-    response.close()
-    return response.cookies.keys()
+    #response.close()
+    result=response.cookies.keys()
+    #if not ('search_ids' in result):
+    #    result = await future1
+
+    return result
 
 async def asynchronous():
     global countPages
     futures = [fetch_async(i) for i in range(0, int(countPages)+1)]
     for i, future in enumerate(asyncio.as_completed(futures)):
+        #await asyncio.sleep(1)
         result = await future
         print('{} {} '.format(i, result))
 
