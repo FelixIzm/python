@@ -4,7 +4,7 @@ import asyncio, random
 
 secret_cookie=sessionid=''
 loop = asyncio.get_event_loop()
-fxReq = '/search.htm?f=пепед&n=&s=&y=&r='
+fxReq = '/search.htm?f=пеплов&n=&s=&y=&r='
 print(fxReq)
 URL = "https://obd-memorial.ru/html"+fxReq
 cookies = {}
@@ -35,10 +35,10 @@ async def main(URL):
         print(jsessionid)
         cookies = {'3fbe47cd30daea60fc16041479413da2':secret_cookie,'JSESSIONID':jsessionid}
         def do_req():
-            return session.get(URL,cookies=cookies, headers = headers)
+            return requests.get(URL,cookies=cookies, headers = headers)
         future2 = loop.run_in_executor(None, do_req )
         response = await future2
-        print(response.cookies)
+        print(cookies)
         print('status_code_1={}'.format(response.status_code))
         match = re.search(r'countPages = \d+',response.text,)
         if match:
@@ -64,7 +64,7 @@ async def fetch_async(pid):
     global secret_cookie,jsessionid,session
     URL = URL+"&p="+str(pid)
     #headers_req['Cookie']='request=f%3D%D0%BF%D0%B5%D0%BF%D0%BB%D0%BE%D0%B2%26n%3D%26s%3D%26y%3D%26r%3D; 3fbe47cd30daea60fc16041479413da2='+secret_cookie+'; JSESSIONID='+jsessionid
-    headers_req['cookie']='request=f%3D%D0%BF%D0%B5%D0%BF%D0%BB%D0%BE%D0%B2%26n%3D%26s%3D%26y%3D%26r%3D; 3fbe47cd30daea60fc16041479413da2='+secret_cookie+'; JSESSIONID='+jsessionid
+    #headers_req['cookie']='request=f%3D%D0%BF%D0%B5%D0%BF%D0%BB%D0%BE%D0%B2%26n%3D%26s%3D%26y%3D%26r%3D; 3fbe47cd30daea60fc16041479413da2='+secret_cookie+'; JSESSIONID='+jsessionid
     def do_req():
         return session.get(URL,cookies=cookies,headers=headers_req)
     future1 = loop.run_in_executor(None, do_req )
@@ -75,10 +75,10 @@ async def fetch_async(pid):
 
 async def asynchronous():
     global countPages
-    futures = [fetch_async(i) for i in range(0, int(countPages)+1)]
+    futures = [fetch_async(i+1) for i in range(1, 3)]
     for i, future in enumerate(asyncio.as_completed(futures)):
         result = await future
-        print('{} {} '.format(i, result))
+        print('{} {} '.format(i+1, result))
 
 
 loop.run_until_complete(asynchronous())
