@@ -1,8 +1,3 @@
-import requests
-fxReq = '/search.htm?f=пеплов&n=&s=&y=&r='
-print(fxReq)
-URL = "https://obd-memorial.ru/html"+fxReq
+import urllib.parse
 
-ss = requests.Session()
-ww= ss.get(URL)
-print(ww.status_code)
+print('/search.htm?f'+urllib.parse.quote('=пеплов',safe=''))
