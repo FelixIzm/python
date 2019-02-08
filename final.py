@@ -1,6 +1,6 @@
 import requests, asyncio,urllib.parse
 from concurrent.futures import ThreadPoolExecutor
-import multiprocessing
+
 
 cookies = {}
 headers={}
@@ -29,7 +29,7 @@ async def fetch_async(pid):
     global loop
     global URL, session, headers,cook_value,cookies,pool
     decode_request = urllib.parse.quote('f=пеплов&n=&s=&y=&r=')
-    URL ='https://obd-memorial.ru/html/search.htm?f='+urllib.parse.quote('пеплов',safe='')+'&n=&s=&y=&r=&p='#+str(pid)
+    URL ='https://obd-memorial.ru/html/search.htm?f='+urllib.parse.quote('пеплов',safe='')+'&n=&s=&y=&r=&p='+str(pid)
     cookies = {'3fbe47cd30daea60fc16041479413da2':cook_value, 'JSESSIONID':'9D65494D96D0615055CFAE05999998B0','request':urllib.parse.quote('f=пеплов&n=&s=&y=&r=')}
     cookies['path']= '/html/search.htm?f=%D0%BF%D0%B5%D0%BF%D0%BB%D0%BE%D0%B2&n=&s=&y=&r='
 
@@ -41,17 +41,22 @@ async def fetch_async(pid):
         return requests.get(URL,cookies=cookies,headers=headers)
     future1 = loop.run_in_executor(pool, do_req )
     response = await future1
-    #print('{} {}'.format(response.status_code, response.cookies.keys()))
-    #response.close()
     result=response.cookies.keys()
-    print(result)
-    return result
+    #print(result)
+
+    while  ('search_ids' not in result):
+        future1 = loop.run_in_executor(pool, do_req )
+        response = await future1
+        result=response.cookies.keys()
+    return response.cookies
+
 
 async def asynchronous():
-    futures = [fetch_async(i) for i in range(0, 1)]
+    futures = [fetch_async(i) for i in range(0, 16)]
     for i, future in enumerate(asyncio.as_completed(futures)):
         result = await future
-        print('{} {} '.format(i, result))
+        if ('search_ids' in result):
+            print('{} {} '.format(i, result['search_ids']))
 
-loop.run_until_complete(fetch_async(1))
+loop.run_until_complete(asynchronous())
 loop.close()
