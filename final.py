@@ -30,7 +30,9 @@ async def fetch_async(pid):
     global URL, session, headers,cook_value,cookies,pool
     decode_request = urllib.parse.quote('f=пеплов&n=&s=&y=&r=')
     URL ='https://obd-memorial.ru/html/search.htm?f='+urllib.parse.quote('пеплов',safe='')+'&n=&s=&y=&r=&p='+str(pid)
-    cookies = {'3fbe47cd30daea60fc16041479413da2':cook_value, 'JSESSIONID':'9D65494D96D0615055CFAE05999998B0','request':urllib.parse.quote('f=пеплов&n=&s=&y=&r=')}
+    cookies['3fbe47cd30daea60fc16041479413da2'] = cook_value
+    cookies['JSESSIONID'] = '9D65494D96D0615055CFAE05999998B0'
+    cookies['request'] = urllib.parse.quote('f=пеплов&n=&s=&y=&r=')
     cookies['path']= '/html/search.htm?f=%D0%BF%D0%B5%D0%BF%D0%BB%D0%BE%D0%B2&n=&s=&y=&r='
 
     headers['User-Agent']='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
