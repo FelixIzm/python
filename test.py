@@ -44,10 +44,10 @@ main(fio)
 print('secret cookie = '+secret_cookie_value)
 print('JSESSIONID = '+JSESSIONID_value)
 print('countPages = '+countPages)
-
-def get_page(page):
-    global cookies,headers
-    prev_search_ids = ''
+ids=[]
+async def get_page(page):
+    global cookies,headers,ids
+    #print('page = '+str(page))
     if(page==1):
         URL_search =url1+url2+url3
         cookies[secret_cookie]=secret_cookie_value
@@ -61,25 +61,35 @@ def get_page(page):
             cookies['JSESSIONID'] = JSESSIONID_value
             res2 = requests.get(URL_search,cookies=cookies,headers=headers)
             if('search_ids' in res2.cookies.keys()):
-                prev_search_ids = res2.cookies['search_ids']
+                ids.append(res2.cookies['search_ids'])
                 #print('prev_search_ids = '+prev_search_ids)
                 #print(res2.cookies.keys())
-                return res2.cookies.keys()
+                return res2.cookies
+            else:
+                while not ('search_ids' in res2.cookies.keys()):
+                    res2 = requests.get(URL_search,cookies=cookies,headers=headers)
+                ids.append(res2.cookies['search_ids'])
+                return res2.cookies
     else:
         URL_search =URL_search =url1+url2+url3+'&p='+str(page)
         cookies[secret_cookie]=secret_cookie_value
         cookies['request']=urllib.parse.quote(url3)
         cookies['JSESSIONID'] = JSESSIONID_value
-        cookies['ids'] = prev_search_ids
-        cookies['search_ids'] = prev_search_ids
+        cookies['ids'] = ids[page-2]
+        cookies['search_ids'] = ids[page-2]
         #print(cookies)
         res1 = requests.get(URL_search,cookies=cookies,headers=headers)
         if(secret_cookie in res1.cookies.keys()):
             res2 = requests.get(URL_search,cookies=cookies,headers=headers)
             if('search_ids' in res2.cookies.keys()):
-                prev_search_ids = res2.cookies['search_ids']
+                ids.append(res2.cookies['search_ids'])
                 #print(res2.cookies.keys())
-                return res2.cookies.keys()
+                return res2.cookies
+            else:
+                while not ('search_ids' in res2.cookies.keys()):
+                    res2 = requests.get(URL_search,cookies=cookies,headers=headers)
+                ids.append(res2.cookies['search_ids'])
+                return res2.cookies
 
         
 
@@ -121,9 +131,14 @@ async def asynchronous():
 
 #loop.run_until_complete(asynchronous())
 #loop.close()
-futures = [get_page(i) for i in range(1, 6)]
-for i, future in enumerate(futures):
-    result = future
-    #if ('search_ids' in result):
-    print('{} {} '.format(i, result))
 
+async def fxMain():
+    futures = [get_page(i) for i in range(1, 7)]
+    for i, future in enumerate(futures):
+        result = await future
+        if ('search_ids' in result.keys()):
+            print('{} {} '.format(i, len(urllib.parse.unquote( result['search_ids']).split(' '))))
+
+#fxMain()
+loop.run_until_complete(fxMain())
+loop.close()
