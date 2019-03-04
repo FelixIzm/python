@@ -12,7 +12,7 @@ JSESSIONID_value = ''
 countPages = ''
 headers['User-Agent']='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 loop = asyncio.get_event_loop()
-fio = 'юрак'
+fio = 'измайлов'
 url1= 'https://obd-memorial.ru/html'
 url2 = '/search.htm?'
 url3= 'f='+fio+'&n=&s=&y=&r=&ps=100'
