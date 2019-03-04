@@ -1,3 +1,4 @@
 .vscode/settings.json
-Names.csv
-Names.csv
+*.csv
+*.xlsx
+idfile.txt
