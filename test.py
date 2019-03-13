@@ -12,11 +12,11 @@ JSESSIONID_value = ''
 countPages = ''
 headers['User-Agent']='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 loop = asyncio.get_event_loop()
-fio = 'рыбалко'
+fio = 'казаков'
 url1= 'https://obd-memorial.ru/html'
 url2 = '/search.htm?'
 url3= 'f='+fio+'&n=&s=&y=&r=&ps=100'
-url3= 'n=P~максим&s=P~максим*&y=&r=&ps=100'
+#url3= 'n=P~максим&s=P~максим*&y=&r=&ps=100'
 
 csv_columns = ['ID','Фамилия']
 csv_columns.append('Имя')
@@ -47,8 +47,8 @@ sys.excepthook = excepthook
 def main(f):
     global JSESSIONID_value, secret_cookie,secret_cookie_value, countPages, headers, cookies, url2,url3
     URL = 'https://obd-memorial.ru/html'
-    #URL_search = URL + '/search.htm?f='+f+'&n=&s=&y=&r=&ps=100'
-    URL_search = URL + url2+url3+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21'
+    URL_search = URL + '/search.htm?f='+f+'&n=&s=&y=&r=&ps=100'
+    #URL_search = URL + url2+url3+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21'
     s = requests.get(URL)
     print(s.status_code)
     if(s.status_code==307):
@@ -60,8 +60,8 @@ def main(f):
             JSESSIONID_value =  r1.cookies["JSESSIONID"]
             cookies = {'JSESSIONID': JSESSIONID_value, secret_cookie:secret_cookie_value}
             headers['JSESSIONID'] = JSESSIONID_value
-            #cookies['request']=urllib.parse.quote(url3+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21')
-            cookies['request'] = 'n%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%26s%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC*%26entity%3D000000011111110%26entities%3D24%2C28%2C27%2C23%2C34%2C22%2C20%2C21;'
+            cookies['request']=urllib.parse.quote(url3+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21')
+            #cookies['request'] = 'n%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%26s%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC*%26entity%3D000000011111110%26entities%3D24%2C28%2C27%2C23%2C34%2C22%2C20%2C21;'
             headers['Referer']='https://obd-memorial.ru/html/advanced-search.htm'
             print(cookies['request'])
             headers['Host'] = 'obd-memorial.ru'
