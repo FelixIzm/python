@@ -1,0 +1,4 @@
+.vscode/settings.json
+*.csv
+*.xlsx
+idfile.txt
