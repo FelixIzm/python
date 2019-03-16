@@ -3,6 +3,20 @@ import requests, re
 import asyncio,urllib.parse
 from requests_html import HTMLSession
 import csv,sys
+
+import sqlite3
+conn = sqlite3.connect("mydatabase.db") # или :memory: чтобы сохранить в RAM
+cursor = conn.cursor()
+ 
+# Создание таблицы
+cursor.execute("DROP TABLE if exists search_ids")
+cursor.execute("DROP TABLE if exists cookies")
+cursor.execute("DROP TABLE if exists headers")
+cursor.execute("CREATE TABLE if not exists search_ids (id integer, flag integer, csv text)")
+cursor.execute("CREATE TABLE cookies (key text, value text )")
+cursor.execute("CREATE TABLE headers (key text, value text )")
+
+
 sys.tracebacklimit = None
 cookies = {}
 headers={}
@@ -12,7 +26,9 @@ JSESSIONID_value = ''
 countPages = ''
 headers['User-Agent']='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 loop = asyncio.get_event_loop()
-fio = 'Марков'
+########################################################
+fio = 'гоголь'
+########################################################
 csvfile = open(fio+'.csv', 'w', newline='')
 url1= 'https://obd-memorial.ru/html'
 url2 = '/search.htm?'
@@ -55,15 +71,24 @@ def main(f):
     if(s.status_code==307):
         secret_cookie_value = s.cookies[secret_cookie]
         cookies = { secret_cookie:secret_cookie_value}
+        #sql = 'insert into cookies (key, value) VALUES("'+secret_cookie+'","'+secret_cookie_value+'")'
+        #print(sql)
+        #cursor.execute(sql)
         headers['cookie']=secret_cookie+"="+secret_cookie_value
+        #cursor.execute('insert into headers (key, value) VALUES("cookie","'+secret_cookie+'"="'+secret_cookie_value+'")')
         r1 = requests.get(URL_search,cookies=cookies,headers=headers)
         if('JSESSIONID' in r1.cookies.keys()):
             JSESSIONID_value =  r1.cookies["JSESSIONID"]
             cookies = {'JSESSIONID': JSESSIONID_value, secret_cookie:secret_cookie_value}
+            #cursor.execute('insert into cookies (key, value) VALUES("JSESSIONID","'+JSESSIONID_value+'")')
             headers['JSESSIONID'] = JSESSIONID_value
+            #cursor.execute('insert into headers (key, value) VALUES("JSESSIONID","'+JSESSIONID_value+'")')
             cookies['request']=urllib.parse.quote(url3+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21')
+            #cursor.execute('insert into cookies (key, value) VALUES("request","'+urllib.parse.quote(url3+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21')+'")')
             #cookies['request'] = 'n%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%26s%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC*%26entity%3D000000011111110%26entities%3D24%2C28%2C27%2C23%2C34%2C22%2C20%2C21;'
             headers['Referer']='https://obd-memorial.ru/html/advanced-search.htm'
+            #cursor.execute('insert into headers (key, value) VALUES("Referer","https://obd-memorial.ru/html/advanced-search.htm")')
+
             #print(cookies['request'])
             headers['Host'] = 'obd-memorial.ru'
             headers['User-Agent']='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:65.0) Gecko/20100101 Firefox/65.0'
@@ -74,6 +99,7 @@ def main(f):
             headers['Cookie']=secret_cookie+"="+secret_cookie_value+'; showExtendedParams=false; request=n%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC%26s%3DP~%D0%BC%D0%B0%D0%BA%D1%81%D0%B8%D0%BC*%26entity%3D000000011111110%26entities%3D24%2C28%2C27%2C23%2C34%2C22%2C20%2C21; JSESSIONID=419825B06F290D3D028C7C3AD689B9E1'
             headers['Upgrade-Insecure-Requests']='1'
             headers['Cache-Control'] = 'max-age=0'
+            #cursor.execute('insert into headers (key, value) VALUES("Host","obd-memorial.ru")')
 
 
             r2 = requests.get(URL_search,cookies=cookies,headers=headers)
@@ -88,6 +114,15 @@ def main(f):
 
             print('search_ids' in r2.cookies.keys())
             #print(r2.cookies['search_ids'])
+            for key, value in cookies.items():
+                sql= 'insert into cookies (key, value) VALUES("'+key+'","'+value+'")'
+                cursor.execute(sql)
+                print(key, value)
+            for key, value in headers.items():
+                sql= 'insert into headers (key, value) VALUES("'+key+'","'+value+'")'
+                cursor.execute(sql)
+                print(key, value)
+            conn.commit
 
 
 main(fio)
@@ -168,7 +203,10 @@ async def fxMain():
             print('{} {} '.format(i, len(array_ids)))
             for id in array_ids:
                 idfile.write(id+'\n')
-                get_info(id)
+                #get_info(id)
+                cursor.execute('insert into search_ids(id,flag) values ('+id+',0)')
+            conn.commit()
+
     for data in dict_data:
         writer.writerow(data)
 
