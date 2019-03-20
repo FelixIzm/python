@@ -1,2 +1,2 @@
-import sqlite3
-conn = sqlite3.connect('my.db')
+import urllib.parse
+print(urllib.parse.quote('pb=T~краснода'))
