@@ -2,10 +2,14 @@
 import requests, re
 import asyncio,urllib.parse
 from requests_html import HTMLSession
-import csv,sys
-
+import csv,sys,json
 import sqlite3
-conn = sqlite3.connect("mydatabase.db") # или :memory: чтобы сохранить в RAM
+
+########################################################
+fio = 'Кибенко'
+########################################################
+
+conn = sqlite3.connect("./db/"+fio+".db") # или :memory: чтобы сохранить в RAM
 cursor = conn.cursor()
  
 cursor.execute("SELECT * FROM cookies")
@@ -20,8 +24,7 @@ for i in cursor.fetchall():
     headers[i[0]] = i[1]
 print(headers)
 
-fio = 'Гоголь'
-csvfile = open(fio+'.csv', 'w', newline='')
+csvfile = open('./csv/'+fio+'.csv', 'w', newline='')
 csv_columns = ['ID','Фамилия']
 csv_columns.append('Имя')
 csv_columns.append('Отчество')
@@ -51,16 +54,27 @@ def get_info(id):
             if(list_title[x].text in csv_columns):
                 row_data[list_title[x].text] = list_result[x-1].text
     #dict_data.append(row_data)
-    print(row_data)
+    #print(row_data)
 
     sql = 'update search_ids set flag = 1, csv="'+str(row_data).replace('"',"")+'" where id='+str(id)
     cursor.execute(sql)
     conn.commit()
 
+cursor.execute("SELECT count(1) FROM search_ids where flag=0")
+count_row = cursor.fetchone()[0]
+#print(count_row)
+count=1
 cursor.execute("SELECT * FROM search_ids WHERE flag=0")
 for i in cursor.fetchall():
     get_info(i[0])
+    print ('{} из {}'.format(count,count_row))
+    count+=1
 
+count=1
+cursor.execute("SELECT count(1) FROM search_ids where flag=1")
+count_row = cursor.fetchone()[0]
 cursor.execute("SELECT * FROM search_ids WHERE flag=1")
 for i in cursor.fetchall():
-    writer.writerow(i[2])
+    writer.writerow(json.loads(i[2].replace("'",'"')))
+    print ('{} из {}'.format(count,count_row))
+    count+=1
