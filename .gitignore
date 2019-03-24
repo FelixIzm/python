@@ -3,3 +3,4 @@
 *.xlsx
 idfile.txt
 mydatabase.db
+.vscode/settings.json
