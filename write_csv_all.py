@@ -1,11 +1,12 @@
+#!/usr/bin/python3
 import csv,json
 import sqlite3
-conn = sqlite3.connect("../doc/all_fields.db") # или :memory: чтобы сохранить в RAM
+conn = sqlite3.connect("./db/all_fields.db") # или :memory: чтобы сохранить в RAM
 
 ########################################################
-fio = 'литвинов'
+fio = '227_СД'
 ########################################################
-csvfile = open(fio+'.csv', 'w', newline='')
+csvfile = open("./csv/"+fio+'.csv', 'w', newline='')
 csv_columns = ['ID','Фамилия']
 csv_columns.append('Имя')
 csv_columns.append('Отчество')

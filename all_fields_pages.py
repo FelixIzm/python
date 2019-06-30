@@ -4,18 +4,45 @@ import requests, re
 import asyncio,urllib.parse
 from requests_html import HTMLSession
 import csv,sys
-
 import sqlite3
-conn = sqlite3.connect("./db/all_fields.db") # или :memory: чтобы сохранить в RAM
+import argparse
+
+conn = sqlite3.connect('./db/all_fields.db') # или :memory: чтобы сохранить в RAM
 cursor = conn.cursor()
+
  
+def createParser ():
+    parser = argparse.ArgumentParser()
+    parser.add_argument ('name', nargs='?')
+    return parser
+ 
+ 
+if __name__ == '__main__':
+    parser = createParser()
+    namespace = parser.parse_args()
+    # если что-то передали в аргументах, удаляем таблицы и все заново
+    if namespace.name:
+        cursor.execute("DROP TABLE if exists search_ids")
+        cursor.execute("DROP TABLE if exists pages")
+        #print ("Привет, {}!".format (namespace.name) )
+
 # Создание таблицы
-cursor.execute("DROP TABLE if exists search_ids")
 cursor.execute("DROP TABLE if exists cookies")
 cursor.execute("DROP TABLE if exists headers")
+
+
+cursor.execute("CREATE TABLE if not exists pages (num integer)")
 cursor.execute("CREATE TABLE if not exists search_ids (id integer, flag integer, csv text)")
-cursor.execute("CREATE TABLE cookies (key text, value text )")
-cursor.execute("CREATE TABLE headers (key text, value text )")
+cursor.execute("CREATE TABLE if not exists cookies (key text, value text )")
+cursor.execute("CREATE TABLE if not exists headers (key text, value text )")
+cursor.execute("SELECT num FROM pages")
+data = cursor.fetchone()
+if data is None:
+    cursor.execute('insert into pages(num) values (0)')
+    conn.commit()
+    insertedPages=int(0)
+else:
+    insertedPages = data[0]
 
 
 sys.tracebacklimit = None
@@ -28,13 +55,13 @@ countPages = ''
 headers['User-Agent']='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0'
 loop = asyncio.get_event_loop()
 ########################################################
-text= 'd=T~Ульяновский РВК сумская'
+text= 'lp=P~227 сд'
 ########################################################
 url1= 'https://obd-memorial.ru/html'
 url2 = '/search.htm?'
 ps = '100'
-#url3= 'pb=T~'+text+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21&ps='+ps
-url3= text+'&entity=000000011111110&entities=24,28,27,23,34,22,20,21&ps='+ps
+# место призыва
+url3='pb=P~смоленская обл&entity=000000011111110&entities=24,28,27,23,34,22,20,21&ps=100'
 
 
 def excepthook(type, value, traceback):
@@ -42,7 +69,7 @@ def excepthook(type, value, traceback):
 
 sys.excepthook = excepthook
 
-def main(text):
+def main():
     global JSESSIONID_value, secret_cookie,secret_cookie_value, countPages, headers, cookies, url2,url3
     URL = 'https://obd-memorial.ru/html'
     URL_search = URL + '/search.htm?'+url3
@@ -102,9 +129,9 @@ def main(text):
             conn.commit
 
 
-main(text)
-print('secret cookie = '+secret_cookie_value)
-print('JSESSIONID = '+JSESSIONID_value)
+main()
+#print('secret cookie = '+secret_cookie_value)
+#print('JSESSIONID = '+JSESSIONID_value)
 print('countPages = '+countPages)
 
 ids=[]
@@ -135,8 +162,8 @@ async def get_page(page):
         cookies[secret_cookie]=secret_cookie_value
         cookies['request']=urllib.parse.quote(url3)
         cookies['JSESSIONID'] = JSESSIONID_value
-        cookies['ids'] = ids[page-1]
-        cookies['search_ids'] = ids[page-1]
+        #cookies['ids'] = ids[page-1]
+        #cookies['search_ids'] = ids[page-1]
         #cookies['count']='103'
         res1 = requests.get(URL_search,cookies=cookies,headers=headers)
         if(secret_cookie in res1.cookies.keys()):
@@ -152,16 +179,22 @@ async def get_page(page):
 
 
 async def fxMain():
-    global countPages, writer
-    futures = [get_page(i) for i in range(0, int(countPages))]
+    global countPages, insertedPages
+    print('insertedPages = {}'.format(insertedPages))
+
+    futures = [get_page(i) for i in range(insertedPages, int(countPages))]
+
+    print('futures.count = {}'.format(len(futures)))
     for i, future in enumerate(futures):
         result = await future
         if ('search_ids' in result.keys()):
             array_ids = urllib.parse.unquote( result['search_ids']).split(' ')
-            print('{} {} '.format(i, len(array_ids)))
+            print('{} {} '.format((i+insertedPages), countPages))
             for id in array_ids:
                 #get_info(id)
                 cursor.execute('insert into search_ids(id,flag) values ('+id+',0)')
+            cursor.execute('update pages set num='+str(i+insertedPages+1))
+            #cursor.execute('commit')
             conn.commit()
 
 
