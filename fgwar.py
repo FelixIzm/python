@@ -1,37 +1,68 @@
 # # -*- coding: utf-8 -*-
 from requests_html import HTMLSession
-import json,requests, pprint, urllib.parse
+import json,requests, pprint, urllib.parse, asyncio, sys, csv
+import sqlite3
+
+
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 session = HTMLSession()
-
+csvfile = open('./csv/data.csv', 'w', newline='')
 cookies = {}
 cookies['PHPSESSID'] = 'ob6bh8easkjetr55vmcetesvv6'
 cookies['LNG'] = 'ru'
+loop = asyncio.get_event_loop()
+
+
+
+conn = sqlite3.connect('./db/gwar.db') # или :memory: чтобы сохранить в RAM
+cursor = conn.cursor()
+
+if __name__ == '__main__':
+    parser = createParser()
+    namespace = parser.parse_args()
+    # если что-то передали в аргументах, удаляем таблицы и все заново
+    if namespace.name:
+        cursor.execute("DROP TABLE if exists search_ids")
+        cursor.execute("DROP TABLE if exists pages")
+        #print ("Привет, {}!".format (namespace.name) )
+
 
 #Губерния
-data = '''{"indices":["gwar"],
+count_pages = 100
+csv_columns = ['Фамилия']
+csv_columns.append('Имя')
+csv_columns.append('Отчество')
+writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+writer.writeheader()
+
+data = '''{{"indices":["gwar"],
         "entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie",
                     "chelovek_nagradnaya_kartochka","commander","person","chelovek_posluzhnoi_spisok","chelovek_uchetnaya_kartochka"],
-        "queryFields":{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"",
+        "queryFields":{{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"",
                     "birth_place_gubernia":"тверская","birth_place_uezd":"","birth_place_volost":"","location":"","birth_date":"","rank":"",
                     "data_vibitiya":"","event_name":"","event_id":"","military_unit_name":"","event_place":"","lazaret_name":"","camp_name":"",
                     "date_death":"","award_name":"","nomer_dokumenta":"","data_dokumenta":"","data_i_mesto_priziva":"","archive_short":"",
-                    "nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""},
-        "filterFields":{},"from":0,"size":"100","builderType":"Heroes"}'''
+                    "nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""}},
+        "filterFields":{{}},"from":{0},"size":{1},"builderType":"Heroes"}}'''
+
+
 
 # ГОД РОЖДЕНИЯ 1914
-#data = {"indices":["gwar"],
-#   "entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie",
-#               "chelovek_nagradnaya_kartochka","commander","person","chelovek_posluzhnoi_spisok","chelovek_uchetnaya_kartochka"],
-#   "queryFields":{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"","birth_place_gubernia":"","birth_place_uezd":"",
-#                   "birth_place_volost":"","location":"","birth_date":"1914","rank":"","data_vibitiya":"","event_name":"","event_id":"","military_unit_name":"",
-#                   "event_place":"","lazaret_name":"","camp_name":"","date_death":"","award_name":"","nomer_dokumenta":"","data_dokumenta":"",
-#                   "data_i_mesto_priziva":"","archive_short":"","nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""},
-#   "filterFields":{},"from":0,"size":"10","builderType":"Heroes"}
-
+'''
+data = {"indices":["gwar"],
+   "entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie",
+               "chelovek_nagradnaya_kartochka","commander","person","chelovek_posluzhnoi_spisok","chelovek_uchetnaya_kartochka"],
+   "queryFields":{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"","birth_place_gubernia":"","birth_place_uezd":"",
+                   "birth_place_volost":"","location":"","birth_date":"1914","rank":"","data_vibitiya":"","event_name":"","event_id":"","military_unit_name":"",
+                   "event_place":"","lazaret_name":"","camp_name":"","date_death":"","award_name":"","nomer_dokumenta":"","data_dokumenta":"",
+                   "data_i_mesto_priziva":"","archive_short":"","nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""},
+   "filterFields":{},"from":0,"size":"10","builderType":"Heroes"}
+'''
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 headers['X-Requested-With'] = 'XMLHttpRequest'
-#headers['Content-type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
+headers['Content-type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
 headers['Accept'] = 'application/json, text/javascript, */*; q=0.01'
 headers['Accept-Encoding'] = 'utf-8'
 headers['Connection'] = 'keep-alive'
@@ -45,14 +76,58 @@ headers['method'] = 'POST'
 headers['authority'] ='gwar.mil.ru'
 
 
-r = requests.post("https://gwar.mil.ru/gt_data/?builder=Heroes", data=data.encode('utf-8'), headers=headers,cookies=cookies, verify=False)
-box = json.loads(r.text)['hits']['hits']
-print('{}'.format(box[0]['_source']['last_name']))
+r = requests.post("https://gwar.mil.ru/gt_data/?builder=Heroes", data=(data.format(0,count_pages)).encode('utf-8'), headers=headers,cookies=cookies, verify=False)
+#box = json.loads(r.text)['hits']['hits']
 total = int((json.loads(r.text)['hits']['total']))
 print(total)
-print(int(total/10))
+total_a = range(0,int(total),count_pages)
+#print(list(total_a))
 #print(urllib.parse.quote('Тверская'))
 #pprint.pprint((json.loads(r.content)['hits']['hits'][0]))
+
+async def get_page(page):
+        global headers, cookies
+        r = requests.post("https://gwar.mil.ru/gt_data/?builder=Heroes", data=(data.format(page,count_pages)).encode('utf-8'), headers=headers,cookies=cookies, verify=False)
+        return r
+        #box = json.loads(r.text)['hits']['hits']
+        #print('{}'.format(box[0]['_source']['last_name']))
+
+def dict_clean(dict,name_item):
+        item = dict['_source'][name_item]
+        if item is None:
+                 item=''
+        return item
+
+
+async def fxMain():
+        global total_a
+        #total_a = range(0,50,4)
+        futures = [get_page(i) for i in list(total_a)]
+        count=0
+        for i, future in enumerate(futures):
+                result = await future
+                #print(result)
+                boxes = json.loads(result.text)['hits']['hits']
+                for box in boxes:
+                        count+=1
+                        data_priziva = dict_clean(box,'data_priziva')
+                        last_name = dict_clean(box,'last_name')
+                        first_name = dict_clean(box,'first_name')
+                        middle_name = dict_clean(box,'middle_name')
+                        row=[]
+                        row.append(last_name)
+                        row.append(first_name)
+                        row.append(middle_name)
+                        #writer.writerow(row)
+                        print('{} {} {} {}'.format(count,last_name, first_name, middle_name))
+                        #print(y) 
+                #print(len(box))
+                #print('{}'.format(box[0]['_source']['last_name']))
+
+
+        #print(data)
+loop.run_until_complete(fxMain())
+loop.close()
 
 '''
 archive_short: "РГВИА"
