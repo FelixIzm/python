@@ -9,7 +9,15 @@ cookies['PHPSESSID'] = 'ob6bh8easkjetr55vmcetesvv6'
 cookies['LNG'] = 'ru'
 
 #Губерния
-data = u'{"indices":["gwar"],"entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie","chelovek_nagradnaya_kartochka","commander","person","chelovek_posluzhnoi_spisok","chelovek_uchetnaya_kartochka"],"queryFields":{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"","birth_place_gubernia":"тверская","birth_place_uezd":"","birth_place_volost":"","location":"","birth_date":"","rank":"","data_vibitiya":"","event_name":"","event_id":"","military_unit_name":"","event_place":"","lazaret_name":"","camp_name":"","date_death":"","award_name":"","nomer_dokumenta":"","data_dokumenta":"","data_i_mesto_priziva":"","archive_short":"","nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""},"filterFields":{},"from":0,"size":"10","builderType":"Heroes"}'
+data = '''{"indices":["gwar"],
+        "entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie",
+                    "chelovek_nagradnaya_kartochka","commander","person","chelovek_posluzhnoi_spisok","chelovek_uchetnaya_kartochka"],
+        "queryFields":{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"",
+                    "birth_place_gubernia":"тверская","birth_place_uezd":"","birth_place_volost":"","location":"","birth_date":"","rank":"",
+                    "data_vibitiya":"","event_name":"","event_id":"","military_unit_name":"","event_place":"","lazaret_name":"","camp_name":"",
+                    "date_death":"","award_name":"","nomer_dokumenta":"","data_dokumenta":"","data_i_mesto_priziva":"","archive_short":"",
+                    "nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""},
+        "filterFields":{},"from":0,"size":"100","builderType":"Heroes"}'''
 
 # ГОД РОЖДЕНИЯ 1914
 #data = {"indices":["gwar"],
@@ -38,6 +46,67 @@ headers['authority'] ='gwar.mil.ru'
 
 
 r = requests.post("https://gwar.mil.ru/gt_data/?builder=Heroes", data=data.encode('utf-8'), headers=headers,cookies=cookies, verify=False)
-pprint.pprint(json.loads(r.text)['hits']['total'])
+box = json.loads(r.text)['hits']['hits']
+print('{}'.format(box[0]['_source']['last_name']))
+total = int((json.loads(r.text)['hits']['total']))
+print(total)
+print(int(total/10))
 #print(urllib.parse.quote('Тверская'))
 #pprint.pprint((json.loads(r.content)['hits']['hits'][0]))
+
+'''
+archive_short: "РГВИА"
+birth_date: null
+birth_place: null
+birth_place_gubernia: "Тверская губ."
+birth_place_id: 306787
+birth_place_location: null
+birth_place_np_type: "с."
+birth_place_uezd: "Калязинский уезд"
+birth_place_volost: "Талдомская вол."
+box_id: null
+data_priziva: null
+deal: "Списки потерь солдат 185 пехотного Башкадыкларского полка"
+deal_id: 10000619
+deal_num: "352"
+doc_type: "Именные списки потерь"
+document_author: "185-й пехотный Башкадыкларский полк"
+document_date: "1915-09-17"
+document_name: "Именной список потерь нижних чинов 185 пехотного Башкадыкларского полка за июль месяц 1915 г."
+document_num: 241396
+documents_pages: {documents_id: [10022255], pages_id: [10208299]}
+event_date_from: "1915-07-19"
+event_date_to: "1915-07-19"
+event_place: "Банковецкие позиции"
+first_name: "Андрей"
+fund: "Особое делопроизводство по сбору и регистрации сведений о выбывших за смертью или за ранами, а также пропавших без вести воинских чинах, действующих против неприятельских армий (1914 - 1918)"
+fund_id: 1
+fund_num: "16196"
+id: 14349740
+inventory: "Именные списки потерь солдат и офицеров 1 мировой войны 1914-1918 гг. (по полкам и бригадам)"
+inventory_id: 1
+inventory_num: "1"
+last_name: "Чистов"
+lazaret_id: null
+middle_name: "Емельянович"
+military_unit_id: 212
+military_unit_name: "185-й пехотный Башкадыкларский полк"
+operations: [{event_id: 62, event_name: "Польский мешок (потеря Польши)"}]
+person_type: "Списки потерь"
+rank: "рядовой"
+shkaf: null
+shkaf_id: null
+shkaf_name: null
+updated: "2018-10-15T00:00:00Z"
+vibitie_date_from: null
+vibitie_date_to: null
+vibitie_mesto: null
+vibitie_prichina: "пропал без вести"
+zahoronenie_gubernia: null
+zahoronenie_location: null
+zahoronenie_mesto: null
+zahoronenie_np_type: null
+zahoronenie_uezd: null
+zahoronenie_volost: null
+__type: "chelovek_donesenie"
+'''
