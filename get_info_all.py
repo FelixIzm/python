@@ -4,11 +4,9 @@ import requests, re
 import asyncio,urllib.parse
 from requests_html import HTMLSession
 import csv,sys,json
-from multiprocessing import Pool
 
 import sqlite3
 conn = sqlite3.connect("./db/all_fields.db") # или :memory: чтобы сохранить в RAM
-#conn.row_factory = lambda cursor, row: row[0]
 cursor = conn.cursor()
  
 cursor.execute("SELECT * FROM cookies")
@@ -66,24 +64,11 @@ cursor.execute("SELECT count(1) FROM search_ids where flag=0")
 count_row = cursor.fetchone()[0]
 #print(count_row)
 count=1
-
-conn.row_factory = lambda cursor, row: row[0]
-c = conn.cursor()
-#ids = c.execute('SELECT id FROM users').fetch
-ids = c.execute("SELECT id FROM search_ids WHERE flag=0").fetchall()
-
-
-print(ids)
-
-pool = Pool()
-pool.map(get_info, ids)
-pool.close()
-pool.join()
-
-#for i in cursor.fetchall():
-#    get_info(i[0])
-#    print ('{} из {}'.format(count,count_row))
-#    count+=1
+cursor.execute("SELECT * FROM search_ids WHERE flag=0")
+for i in cursor.fetchall():
+    get_info(i[0])
+    print ('{} из {}'.format(count,count_row))
+    count+=1
 
 #count=1
 #cursor.execute("SELECT count(1) FROM search_ids where flag=1")

@@ -2,6 +2,7 @@
 from requests_html import HTMLSession
 import json,requests, pprint, urllib.parse, asyncio, sys, csv
 import sqlite3
+import argparse
 
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -14,9 +15,14 @@ cookies['PHPSESSID'] = 'ob6bh8easkjetr55vmcetesvv6'
 cookies['LNG'] = 'ru'
 loop = asyncio.get_event_loop()
 
+def createParser ():
+    parser = argparse.ArgumentParser()
+    parser.add_argument ('name', nargs='?')
+    return parser
 
 
-conn = sqlite3.connect('./db/gwar.db') # или :memory: чтобы сохранить в RAM
+#conn = sqlite3.connect('./db/gwar.db') 
+conn = sqlite3.connect('e:/temp/db/gwar.db') 
 cursor = conn.cursor()
 
 if __name__ == '__main__':
@@ -24,10 +30,21 @@ if __name__ == '__main__':
     namespace = parser.parse_args()
     # если что-то передали в аргументах, удаляем таблицы и все заново
     if namespace.name:
-        cursor.execute("DROP TABLE if exists search_ids")
+        cursor.execute("DROP TABLE if exists data")
         cursor.execute("DROP TABLE if exists pages")
         #print ("Привет, {}!".format (namespace.name) )
 
+cursor.execute("CREATE TABLE if not exists pages (num integer)")
+cursor.execute("CREATE TABLE if not exists data (id integer, flag integer, csv text)")
+
+cursor.execute("SELECT num FROM pages")
+pages = cursor.fetchone()
+if pages is None:
+    cursor.execute('insert into pages(num) values (0)')
+    conn.commit()
+    insertedPages=int(0)
+else:
+    insertedPages = pages[0]+1
 
 #Губерния
 count_pages = 100
@@ -100,14 +117,17 @@ def dict_clean(dict,name_item):
 
 
 async def fxMain():
-        global total_a
+        global total_a, insertedPages
         #total_a = range(0,50,4)
-        futures = [get_page(i) for i in list(total_a)]
+        futures = [get_page(insertedPages) for insertedPages in list(total_a)]
+        print('insertedPages = {}'.format(insertedPages))
+        print('futures.count = {}'.format(len(futures)))
         count=0
         for i, future in enumerate(futures):
                 result = await future
                 #print(result)
                 boxes = json.loads(result.text)['hits']['hits']
+                print(insertedPages)
                 for box in boxes:
                         count+=1
                         data_priziva = dict_clean(box,'data_priziva')
@@ -119,8 +139,12 @@ async def fxMain():
                         row.append(first_name)
                         row.append(middle_name)
                         #writer.writerow(row)
-                        print('{} {} {} {}'.format(count,last_name, first_name, middle_name))
-                        #print(y) 
+                        #print('{} {} {} {}'.format(count,last_name, first_name, middle_name))
+                        #print(y)
+                cursor.execute('update pages set num='+str(insertedPages))
+                conn.commit()
+                insertedPages+=1
+ 
                 #print(len(box))
                 #print('{}'.format(box[0]['_source']['last_name']))
 
