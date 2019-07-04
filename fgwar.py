@@ -9,7 +9,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 session = HTMLSession()
-csvfile = open('./csv/data.csv', 'w', newline='')
+#csvfile = open('./csv/data.csv', 'w', newline='')
+csvfile = open('e:/temp/vpp/csv/data.csv', 'w', newline='')
 cookies = {}
 cookies['PHPSESSID'] = 'ob6bh8easkjetr55vmcetesvv6'
 cookies['LNG'] = 'ru'
@@ -22,7 +23,7 @@ def createParser ():
 
 
 #conn = sqlite3.connect('./db/gwar.db') 
-conn = sqlite3.connect('e:/temp/db/gwar.db') 
+conn = sqlite3.connect('e:/temp/vpp/db/gwar.db') 
 cursor = conn.cursor()
 
 if __name__ == '__main__':
@@ -35,7 +36,7 @@ if __name__ == '__main__':
         #print ("Привет, {}!".format (namespace.name) )
 
 cursor.execute("CREATE TABLE if not exists pages (num integer)")
-cursor.execute("CREATE TABLE if not exists data (id integer, flag integer, csv text)")
+cursor.execute("CREATE TABLE if not exists data (id integer, csv text)")
 
 cursor.execute("SELECT num FROM pages")
 pages = cursor.fetchone()
@@ -46,11 +47,22 @@ if pages is None:
 else:
     insertedPages = pages[0]+1
 
-#Губерния
 count_pages = 100
 csv_columns = ['Фамилия']
 csv_columns.append('Имя')
 csv_columns.append('Отчество')
+csv_columns.append('Дата рождения')
+csv_columns.append('Должность/Звание')
+csv_columns.append('Воинская часть')
+csv_columns.append('Губерния')
+csv_columns.append('Уезд')
+csv_columns.append('Волость')
+csv_columns.append('Причина выбытия')
+csv_columns.append('Дата события')
+csv_columns.append('Место события')
+csv_columns.append('Тип документа')
+csv_columns.append('Ссылка на запись')
+
 writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
 writer.writeheader()
 
@@ -134,10 +146,52 @@ async def fxMain():
                         last_name = dict_clean(box,'last_name')
                         first_name = dict_clean(box,'first_name')
                         middle_name = dict_clean(box,'middle_name')
+                        # краткое наименование архива
+                        archive_short = dict_clean(box,'archive_short')
+                        # дата рождения
+                        birth_date = dict_clean(box,'birth_date')
+                        # губерния
+                        birth_place_gubernia = dict_clean(box,'birth_place_gubernia')
+                        #уезд
+                        birth_place_uezd = dict_clean(box,'birth_place_uezd')
+                        # волость
+                        birth_place_volost = dict_clean(box,'birth_place_volost')
+                        # Дело
+                        deal = dict_clean(box,'deal')
+                        # Причина выбытия
+                        vibitie_prichina = dict_clean(box,'vibitie_prichina')
+                        # Дата события
+                        event_date_to = dict_clean(box,'event_date_to')
+                        # Место события
+                        event_place = dict_clean(box,'event_place')
+                        # Тип документа
+                        doc_type = dict_clean(box,'doc_type')
+                        # id 
+                        id = dict_clean(box,'id')
+                        # Должность/Звание
+                        rank = dict_clean(box,'rank')
+                        # Воинская часть 
+                        military_unit_name = dict_clean(box,'military_unit_name')
+
                         row=[]
-                        row.append(last_name)
-                        row.append(first_name)
-                        row.append(middle_name)
+                        row.append(last_name)           # Фамилия
+                        row.append(first_name)          # Имя
+                        row.append(middle_name)         # Отчество
+                        row.append(birth_date)          # Дата рождения
+                        row.append(rank)                # Должность/Звание
+                        row.append(military_unit_name)  # Воинская часть
+                        row.append(birth_place_gubernia)# 
+                        row.append(birth_place_uezd)    # 
+                        row.append(birth_place_volost)  # 
+                        row.append(vibitie_prichina)    # Причина выбытия
+                        row.append(event_date_to)       # Дата события
+                        row.append(event_place)         # Место события
+                        row.append(doc_type)            # Тип документа
+                        row.append('https://gwar.mil.ru/heroes/chelovek_donesenie'+str(id)+'/')
+
+                        cursor.execute('insert into data(id,csv) values (0,"'+str(row).replace('"',"")+'")')
+                        conn.commit()
+
                         #writer.writerow(row)
                         #print('{} {} {} {}'.format(count,last_name, first_name, middle_name))
                         #print(y)
@@ -154,6 +208,8 @@ loop.run_until_complete(fxMain())
 loop.close()
 
 '''
+https://gwar.mil.ru/heroes/chelovek_donesenie14349740/
+
 archive_short: "РГВИА"
 birth_date: null
 birth_place: null
