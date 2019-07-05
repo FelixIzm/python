@@ -9,8 +9,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 session = HTMLSession()
-#csvfile = open('./csv/data.csv', 'w', newline='')
-csvfile = open('e:/temp/vpp/csv/data.csv', 'w', newline='')
 cookies = {}
 cookies['PHPSESSID'] = 'ob6bh8easkjetr55vmcetesvv6'
 cookies['LNG'] = 'ru'
@@ -35,6 +33,8 @@ if __name__ == '__main__':
         cursor.execute("DROP TABLE if exists pages")
         #print ("Привет, {}!".format (namespace.name) )
 
+cursor.execute("DROP TABLE if exists data")
+cursor.execute("DROP TABLE if exists pages")
 cursor.execute("CREATE TABLE if not exists pages (num integer)")
 cursor.execute("CREATE TABLE if not exists data (id integer, csv text)")
 
@@ -48,23 +48,6 @@ else:
     insertedPages = pages[0]+1
 
 count_pages = 100
-csv_columns = ['Фамилия']
-csv_columns.append('Имя')
-csv_columns.append('Отчество')
-csv_columns.append('Дата рождения')
-csv_columns.append('Должность/Звание')
-csv_columns.append('Воинская часть')
-csv_columns.append('Губерния')
-csv_columns.append('Уезд')
-csv_columns.append('Волость')
-csv_columns.append('Причина выбытия')
-csv_columns.append('Дата события')
-csv_columns.append('Место события')
-csv_columns.append('Тип документа')
-csv_columns.append('Ссылка на запись')
-
-writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
-writer.writeheader()
 
 data = '''{{"indices":["gwar"],
         "entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie",
@@ -78,17 +61,7 @@ data = '''{{"indices":["gwar"],
 
 
 
-# ГОД РОЖДЕНИЯ 1914
-'''
-data = {"indices":["gwar"],
-   "entities":["chelovek_donesenie","chelovek_gospital","chelovek_zahoronenie","chelovek_plen","chelovek_nagrazhdenie","chelovek_predstavlenie",
-               "chelovek_nagradnaya_kartochka","commander","person","chelovek_posluzhnoi_spisok","chelovek_uchetnaya_kartochka"],
-   "queryFields":{"ids":"","last_name":"","first_name":"","middle_name":"","birth_place":"","birth_place_gubernia":"","birth_place_uezd":"",
-                   "birth_place_volost":"","location":"","birth_date":"1914","rank":"","data_vibitiya":"","event_name":"","event_id":"","military_unit_name":"",
-                   "event_place":"","lazaret_name":"","camp_name":"","date_death":"","award_name":"","nomer_dokumenta":"","data_dokumenta":"",
-                   "data_i_mesto_priziva":"","archive_short":"","nomer_fonda":"","nomer_opisi":"","nomer_dela":"","date_birth":"","data_vibitiya_end":""},
-   "filterFields":{},"from":0,"size":"10","builderType":"Heroes"}
-'''
+
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 headers['X-Requested-With'] = 'XMLHttpRequest'
 headers['Content-type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
@@ -110,9 +83,6 @@ r = requests.post("https://gwar.mil.ru/gt_data/?builder=Heroes", data=(data.form
 total = int((json.loads(r.text)['hits']['total']))
 print(total)
 total_a = range(0,int(total),count_pages)
-#print(list(total_a))
-#print(urllib.parse.quote('Тверская'))
-#pprint.pprint((json.loads(r.content)['hits']['hits'][0]))
 
 async def get_page(page):
         global headers, cookies
@@ -146,32 +116,19 @@ async def fxMain():
                         last_name = dict_clean(box,'last_name')
                         first_name = dict_clean(box,'first_name')
                         middle_name = dict_clean(box,'middle_name')
-                        # краткое наименование архива
-                        archive_short = dict_clean(box,'archive_short')
-                        # дата рождения
-                        birth_date = dict_clean(box,'birth_date')
-                        # губерния
-                        birth_place_gubernia = dict_clean(box,'birth_place_gubernia')
-                        #уезд
-                        birth_place_uezd = dict_clean(box,'birth_place_uezd')
-                        # волость
-                        birth_place_volost = dict_clean(box,'birth_place_volost')
-                        # Дело
-                        deal = dict_clean(box,'deal')
-                        # Причина выбытия
-                        vibitie_prichina = dict_clean(box,'vibitie_prichina')
-                        # Дата события
-                        event_date_to = dict_clean(box,'event_date_to')
-                        # Место события
-                        event_place = dict_clean(box,'event_place')
-                        # Тип документа
-                        doc_type = dict_clean(box,'doc_type')
-                        # id 
-                        id = dict_clean(box,'id')
-                        # Должность/Звание
-                        rank = dict_clean(box,'rank')
-                        # Воинская часть 
-                        military_unit_name = dict_clean(box,'military_unit_name')
+                        archive_short = dict_clean(box,'archive_short') # краткое наименование архива
+                        birth_date = dict_clean(box,'birth_date') # дата рождения
+                        birth_place_gubernia = dict_clean(box,'birth_place_gubernia') # губерния
+                        birth_place_uezd = dict_clean(box,'birth_place_uezd') #уезд
+                        birth_place_volost = dict_clean(box,'birth_place_volost') # волость
+                        deal = dict_clean(box,'deal') # Дело
+                        vibitie_prichina = dict_clean(box,'vibitie_prichina') # Причина выбытия
+                        event_date_to = dict_clean(box,'event_date_to') # Дата события
+                        event_place = dict_clean(box,'event_place') # Место события
+                        doc_type = dict_clean(box,'doc_type') # Тип документа
+                        id = dict_clean(box,'id') # id 
+                        rank = dict_clean(box,'rank') # Должность/Звание
+                        military_unit_name = dict_clean(box,'military_unit_name') # Воинская часть 
 
                         row=[]
                         row.append(last_name)           # Фамилия
@@ -187,8 +144,9 @@ async def fxMain():
                         row.append(event_date_to)       # Дата события
                         row.append(event_place)         # Место события
                         row.append(doc_type)            # Тип документа
-                        row.append('https://gwar.mil.ru/heroes/chelovek_donesenie'+str(id)+'/')
-
+                        row.append(archive_short)       # Архив
+                        row.append(deal)                # Дело
+                        row.append('https://gwar.mil.ru/heroes/chelovek_donesenie'+str(id))
                         cursor.execute('insert into data(id,csv) values (0,"'+str(row).replace('"',"")+'")')
                         conn.commit()
 
@@ -199,11 +157,6 @@ async def fxMain():
                 conn.commit()
                 insertedPages+=1
  
-                #print(len(box))
-                #print('{}'.format(box[0]['_source']['last_name']))
-
-
-        #print(data)
 loop.run_until_complete(fxMain())
 loop.close()
 
