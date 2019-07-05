@@ -33,8 +33,6 @@ if __name__ == '__main__':
         cursor.execute("DROP TABLE if exists pages")
         #print ("Привет, {}!".format (namespace.name) )
 
-cursor.execute("DROP TABLE if exists data")
-cursor.execute("DROP TABLE if exists pages")
 cursor.execute("CREATE TABLE if not exists pages (num integer)")
 cursor.execute("CREATE TABLE if not exists data (id integer, csv text)")
 
