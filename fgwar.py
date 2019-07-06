@@ -30,12 +30,12 @@ if __name__ == '__main__':
     namespace = parser.parse_args()
     # если что-то передали в аргументах, удаляем таблицы и все заново
     if namespace.name:
-        cursor.execute("DROP TABLE if exists data")
+        cursor.execute("DROP TABLE if exists search_ids")
         cursor.execute("DROP TABLE if exists pages")
         #print ("Привет, {}!".format (namespace.name) )
 
 cursor.execute("CREATE TABLE if not exists pages (num integer)")
-cursor.execute("CREATE TABLE if not exists data (id integer, csv text)")
+cursor.execute("CREATE TABLE if not exists search_ids (id integer, flag integer, csv text)")
 
 cursor.execute("SELECT num FROM pages")
 pages = cursor.fetchone()
@@ -150,7 +150,7 @@ async def fxMain():
                         row.append(archive_short)       # Архив
                         row.append(deal)                # Дело
                         row.append('https://gwar.mil.ru/heroes/chelovek_donesenie'+str(id))
-                        cursor.execute('insert into data(id,csv) values (0,"'+str(row).replace('"',"")+'")')
+                        cursor.execute('insert into search_ids(id,flag,csv) values (0,1,"'+str(row).replace('"',"")+'")')
                         conn.commit()
 
                         #writer.writerow(row)
