@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # # -*- coding: utf-8 -*-
 from requests_html import HTMLSession
 import json,requests, pprint, urllib.parse, asyncio, sys, csv
@@ -20,8 +21,8 @@ def createParser ():
     return parser
 
 
-#conn = sqlite3.connect('./db/gwar.db') 
-conn = sqlite3.connect('e:/temp/vpp/db/gwar.db') 
+conn = sqlite3.connect('./db/all_fields.db') 
+#conn = sqlite3.connect('e:/temp/vpp/db/gwar.db') 
 cursor = conn.cursor()
 
 if __name__ == '__main__':
@@ -90,10 +91,14 @@ async def get_page(page):
         #print('{}'.format(box[0]['_source']['last_name']))
 
 def dict_clean(dict,name_item):
-        item = dict['_source'][name_item]
-        if item is None:
-                 item=''
-        return item
+	try:
+        	item = dict['_source'][name_item]
+	except Exception as ex:
+		item = ''
+	
+	if item is None:
+		item=''
+	return item
 
 
 async def fxMain():

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import csv,json
 import sqlite3
-conn = sqlite3.connect("./db/data.db") # или :memory: чтобы сохранить в RAM
+conn = sqlite3.connect("./db/gwar.db") # или :memory: чтобы сохранить в RAM
 #conn = sqlite3.connect("e:/temp/vpp/db/gwar.db") # или :memory: чтобы сохранить в RAM
 
 csvfile = open('./csv/data.csv', 'w', newline='')
@@ -31,13 +31,14 @@ count=1
 cursor.execute("SELECT count(1) FROM data")
 count_row = cursor.fetchone()[0]
 cursor.execute("SELECT * FROM data")
+#escapes = ''.join([chr(char) for char in range(1, 32)])
+#t = s.translate(None, escapes)
 for i in cursor.fetchall():
-    json.loads(i[1].replace("'",'"'))
     csv_str=''
-    for y,element in enumerate(eval(i[1])):
+    for y,element in enumerate(eval(i[1].replace("\\","/"))):
         csv_str+='"'+csv_columns[y]+'":"'+element+'",'
     csv_str="{"+csv_str[:-1]+"}"
-    print(csv_str)
+    #print(csv_str)
 
     try:
         writer.writerow(json.loads(csv_str))
