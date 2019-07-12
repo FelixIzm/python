@@ -1,5 +1,5 @@
 from requests_html import HTMLSession
-import json,pprint,asyncio, sys
+import json,pprint,asyncio, sys, sqlite3
 
 session = HTMLSession()
 loop = asyncio.get_event_loop()
@@ -8,6 +8,23 @@ search_str = 'херсонская обл'
 maxNumRecords = '5'
 firstRecordPosition = str(0)
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+
+#conn = sqlite3.connect('./db/all_fields.db') # или :memory: чтобы сохранить в RAM
+conn = sqlite3.connect('E:\\Temp\\db\\all_fields.db') # или :memory: чтобы сохранить в RAM
+cursor = conn.cursor()
+
+# Создание таблицы
+
+cursor.execute("CREATE TABLE if not exists pages (num integer)")
+cursor.execute("CREATE TABLE if not exists search_ids (id integer, flag integer, csv text)")
+cursor.execute("SELECT num FROM pages")
+data = cursor.fetchone()
+if data is None:
+    cursor.execute('insert into pages(num) values (0)')
+    conn.commit()
+    insertedPages=int(0)
+else:
+    insertedPages = data[0]
 
 countPages = 0
 totalRecords = 0
@@ -42,7 +59,7 @@ async def get_page(firstRecordPosition):
         return 'not ok'
 
 async def fxMain():
-    global headers,countPages, totalRecords, search_str,maxNumRecords
+    global headers,countPages, totalRecords, search_str,maxNumRecords,insertedPages
     maxNumRecordsLocal = '10'
     firstRecordPosition = str(0)
     xmlParam = f'<request firstRecordPosition="{firstRecordPosition}" maxNumRecords="{maxNumRecordsLocal}" countResults="true"><record f23="P~{search_str}" entity="Человек Награждение"></record><record f23="P~{search_str}" entity="Человек Представление"></record><record f23="P~{search_str}" entity="Человек Картотека"></record><record f23="P~{search_str}" entity="Человек Юбилейная Картотека"></record></request>'
@@ -54,20 +71,25 @@ async def fxMain():
         totalRecords = int(result['totalRecords'])
         countPages = int(result['totalRecords'])//int(maxNumRecords)
         print('\ntotalRecords  = {} \ncountPages    = {}\nmaxNumRecords = {}'.format(totalRecords,countPages,maxNumRecords))
-        futures = [get_page(i) for i in range(0, int(result['totalRecords']), int(maxNumRecords))]
+        futures = [get_page(i) for i in range(insertedPages, int(result['totalRecords']), int(maxNumRecords))]
         for i, future in enumerate(futures):
             result = await future
             if(result!='not ok'):
                 for rec in result:
+                    db_json={}
                     for key, value in f_struct.items():
                         try:
-                            print("{} : {}".format(f_struct[key],rec[key]))
+                            db_json[f_struct[key]] = rec[key]
                         except KeyError:
-                            print("{} : {}".format(f_struct[key],""))
+                            db_json[f_struct[key]]="''"
+                    cursor.execute('insert into search_ids(id,flag,csv) values ('+rec['id']+',1,"'+str(db_json).replace('"',"")+'")')
+                    conn.commit()
 
-                    print('=====================\n')
-                #result = json.load(result)
-                #print("{} {}\n\n".format(i,result))
+                print ('{} из {}'.format(str(insertedPages+i),str(totalRecords)))
+                cursor.execute('update pages set num='+str(i+insertedPages+1))
+                conn.commit()
+
+
 
 
     else:
