@@ -1,11 +1,11 @@
 from requests_html import HTMLSession
-import json,pprint,asyncio
+import json,pprint,asyncio, sys
 
 session = HTMLSession()
 loop = asyncio.get_event_loop()
 
 search_str = 'херсонская обл'
-maxNumRecords = '100'
+maxNumRecords = '5'
 firstRecordPosition = str(0)
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
@@ -37,25 +37,9 @@ async def get_page(firstRecordPosition):
     result = json.loads(r.text)
     if(result['result']=='OK'):
         #print(len(json.loads(r.text)['records']))
-        return len(json.loads(r.text)['records'])
+        return json.loads(r.text)['records']
     else:
         return 'not ok'
-
-#for record in json.loads(r.text)['records']:
-#    pprint.pprint(record)
-
-# result = json.loads(r.text)
-# if(result['result']=='OK'):
-#     countPages = int(result['totalRecords'])//int(maxNumRecords)
-#     futures = [i for i in range(0, int(result['totalRecords']), int(maxNumRecords))]
-#     for y in enumerate(futures):
-#         print(y)
-
-# else:
-#     print('not OK')
-
-#print(json.loads(r.text)['records'])
-#print(r.text)
 
 async def fxMain():
     global headers,countPages, totalRecords, search_str,maxNumRecords
@@ -71,11 +55,19 @@ async def fxMain():
         countPages = int(result['totalRecords'])//int(maxNumRecords)
         print('\ntotalRecords  = {} \ncountPages    = {}\nmaxNumRecords = {}'.format(totalRecords,countPages,maxNumRecords))
         futures = [get_page(i) for i in range(0, int(result['totalRecords']), int(maxNumRecords))]
-        #for y,page in enumerate(futures):
-        #    print(y)
         for i, future in enumerate(futures):
             result = await future
-            print("{} {}".format(i,result))
+            if(result!='not ok'):
+                for rec in result:
+                    for key, value in f_struct.items():
+                        try:
+                            print("{} : {}".format(f_struct[key],rec[key]))
+                        except KeyError:
+                            print("{} : {}".format(f_struct[key],""))
+
+                    print('=====================\n')
+                #result = json.load(result)
+                #print("{} {}\n\n".format(i,result))
 
 
     else:
