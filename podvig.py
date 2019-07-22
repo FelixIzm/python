@@ -60,6 +60,7 @@ async def fxMain():
             if(result!='not ok'):
                 for rec in result:
                     for key, value in f_struct.items():
+                        
                         try:
                             print("{} : {}".format(f_struct[key],rec[key]))
                         except KeyError:
