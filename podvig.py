@@ -100,6 +100,7 @@ async def fxMain():
                 for rec in result:
                     db_json={}
                     for key, value in f_struct.items():
+                        
                         try:
                             db_json[f_struct[key]] = rec[key]
                         except KeyError:
