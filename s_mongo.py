@@ -5,5 +5,6 @@ client = MongoClient('35.193.230.58',
 
 db = client['test']
 print(db.collection_names())
-
+if 'my_collection' not in db.collection_names():
+    db.create_collection('my_collection')
 #print(client.database_names())  
