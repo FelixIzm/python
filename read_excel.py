@@ -3,7 +3,8 @@ import xlrd
 #import pandas as pd
 #from pandas import ExcelFile
 
-loc = ("E:\\Южное Кладбище\\VGD\\csv\\Нерльский_рн.xlsx") 
+#loc = ("E:\\Южное Кладбище\\VGD\\csv\\Нерльский_рн.xlsx") 
+loc = ("E:\\Южное Кладбище\\VGD\\csv\\Московская_ПодвигНарода_Призыв.xlsx")
 
 #df = pd.read_excel(loc, sheetname='data')
 #print("Column headings:")
