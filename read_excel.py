@@ -4,7 +4,7 @@ import xlrd
 #from pandas import ExcelFile
 
 #loc = ("E:\\Южное Кладбище\\VGD\\csv\\Нерльский_рн.xlsx") 
-loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\Смоленская_обл.xlsx") 
+loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\москворецкий_рвк.xlsx") 
 
 #df = pd.read_excel(loc, sheetname='data')
 #print("Column headings:")
@@ -17,5 +17,5 @@ sheet = wb.sheet_by_index(0)
 sheet.cell_value(0, 0) 
 # Extracting number of columns 
 #for i in range(sheet.nrows):
-for i in range(5):
+for i in range(sheet.nrows):
     print(sheet.row(i)[0].value)
