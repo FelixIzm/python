@@ -1,8 +1,8 @@
 from pymongo import MongoClient
 import pymongo, json, xlrd, sys, pprint
 
-loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\ниж_1.xlsx") 
-
+#loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\ниж_1.xlsx") 
+loc = ("E:\Южное Кладбище\VGD\csv\Калязинский_рн.xlsx")
 
 client = MongoClient('35.193.230.58',
     username='felix', password='12345678', 
@@ -52,9 +52,14 @@ for i, row in enumerate(sheet.get_rows()):
         sheet.row(i)[10].value       
         )
 
-        a_rec.append(rec)
+        a_rec.append(json.loads(rec))
 
-pprint.pprint(a_rec)
+#pprint.pprint(a_rec)
+try:
+    records.insert_many(a_rec, ordered=False)
+except pymongo.errors.BulkWriteError as e:
+    print(e.details['writeErrors'])
+
 sys.exit(0)
 
 for i in range(1,sheet.nrows):
