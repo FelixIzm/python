@@ -1,7 +1,7 @@
 from pymongo import MongoClient
-import pymongo, json, xlrd
+import pymongo, json, xlrd, sys, pprint
 
-loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\москворецкий_рвк.xlsx") 
+loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\ниж_1.xlsx") 
 
 
 client = MongoClient('35.193.230.58',
@@ -33,7 +33,29 @@ fx_rec = '''{{
 wb = xlrd.open_workbook(loc) 
 sheet = wb.sheet_by_index(0) 
 
-records = db.obd
+records = db.bulk
+a_rec=[]
+for i, row in enumerate(sheet.get_rows()):
+    if(i>0):
+        print(" {0} - {1}".format(i,row[1].value))
+        rec = fx_rec.format('"обд"', 
+        int(sheet.row(i)[0].value),
+        sheet.row(i)[1].value,
+        sheet.row(i)[2].value,
+        sheet.row(i)[3].value,
+        sheet.row(i)[4].value,
+        sheet.row(i)[5].value,
+        sheet.row(i)[6].value,
+        sheet.row(i)[7].value,
+        sheet.row(i)[8].value,
+        sheet.row(i)[9].value,
+        sheet.row(i)[10].value       
+        )
+
+        a_rec.append(rec)
+
+pprint.pprint(a_rec)
+sys.exit(0)
 
 for i in range(1,sheet.nrows):
 #for i in range(1,6):
