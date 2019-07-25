@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import pymongo
 import datetime
 uri = "mongodb://felix:12345678@35.193.230.58/?authSource=test&authMechanism=SCRAM-SHA-1"
 #client = MongoClient('35.193.230.58', 27017)
@@ -11,6 +12,9 @@ post = {"author": "Mike",
     "tags": ["mongodb", "python", "pymongo"],
     "date": datetime.datetime.utcnow()}
 posts = db.posts
-
-posts.insert_one(post)
+try:
+    posts.insert_one(post)
+except pymongo.errors.DuplicateKeyError:
+    print("DuplicateKeyError")
+    #continue
 #print(post_id)
