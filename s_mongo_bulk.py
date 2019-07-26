@@ -1,8 +1,8 @@
 from pymongo import MongoClient
 import pymongo, json, xlrd, sys, pprint
 
-#loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\ниж_1.xlsx") 
-loc = ("E:\Южное Кладбище\VGD\csv\Калязинский_рн.xlsx")
+loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\ниж_1.xlsx") 
+#loc = ("E:\Южное Кладбище\VGD\csv\Калязинский_рн.xlsx")
 
 client = MongoClient('35.193.230.58',
     username='felix', password='12345678', 
@@ -34,6 +34,11 @@ wb = xlrd.open_workbook(loc)
 sheet = wb.sheet_by_index(0) 
 
 records = db.bulk
+
+print(records.count_documents({}))
+sys.exit(0)
+
+
 a_rec=[]
 for i, row in enumerate(sheet.get_rows()):
     if(i>0):
@@ -60,7 +65,7 @@ try:
 except pymongo.errors.BulkWriteError as e:
     print(e.details['writeErrors'])
 
-sys.exit(0)
+
 
 for i in range(1,sheet.nrows):
 #for i in range(1,6):
