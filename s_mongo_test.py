@@ -7,13 +7,13 @@ client = MongoClient('35.193.230.58',
     authSource='test',authMechanism='SCRAM-SHA-1')
 
 db = client['test']
-collection_name = 'bulk'
+collection_name = 'short_field'
 
 if collection_name not in db.list_collection_names():
     db.create_collection(collection_name)
 #print(client.database_names())  
 
-records = db.bulk
+records = db[collection_name]
 
 count_doc_start = records.count_documents({})
 
@@ -21,21 +21,21 @@ loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\ниж_
 #loc = ("E:\Южное Кладбище\VGD\csv\Калязинский_рн.xlsx")
 loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\москворецкий_рвк.xlsx") 
 loc = ("C:\\BackUp\\Docs\\Южное Кладбище\\Выгрузки\\Киевская_обл.xlsx") 
-
+loc = ("E:\Temp\obd\Киевская_обл.xlsx") 
 
 fx_rec = '''{{
-    "from": {0},
-    "id": {1},
-    "Фамилия":"{2}",
-    "Имя":"{3}",
-    "Отчество":"{4}",
-    "Дата рождения/Возраст":"{5}",
-    "Место рождения":"{6}",
-    "Дата и место призыва":"{7}",
-    "Последнее место службы":"{8}",
-    "Воинское звание":"{9}",
-    "Причина выбытия":"{10}",
-    "Дата выбытия":"{11}"
+    "f0": {0},
+    "f1": {1},
+    "f2":"{2}",
+    "f3":"{3}",
+    "f4":"{4}",
+    "f5":"{5}",
+    "f6":"{6}",
+    "f7":"{7}",
+    "f8":"{8}",
+    "f9":"{9}",
+    "f10":"{10}",
+    "f11":"{11}"
 }}'''
 
 
