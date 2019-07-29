@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-import pymongo, json, xlrd, sys, pprint, datetime
+import pymongo, json, xlrd, sys, pprint, datetime,os
 from datetime import datetime
 from os import listdir
 from os.path import isfile, join
@@ -21,6 +21,10 @@ count_doc_start = records.count_documents({})
 file_names = 'files'
 if file_names not in db.list_collection_names():
     db.create_collection(file_names)
+    db[file_names].create_index(
+    [("file", pymongo.ASCENDING), ("size", pymongo.ASCENDING)],
+    unique=True
+)
 file_names_collection = db[file_names]
 
 #loc = ("E:\\Temp\\obd\\москворецкий_рвк.xlsx") 
@@ -30,7 +34,7 @@ fx_rec = '''{{"f0": {0},"id": {1},"fl":["{2}","{3}","{4}","{5}","{6}","{7}","{8}
 
 # Собираем названия файлов для обработки
 mypath="E:\\Temp\\obd\\"
-mypath="c:\\Temp\\obd\\"
+#mypath="c:\\Temp\\obd\\"
 
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath, f))]
 
@@ -94,8 +98,8 @@ def write_json(floc):
 
 ####################
 for ff in onlyfiles:
-    #write_json(ff)
-    today = datetime.today()
-    file_name = '{{"file":"{0}", "date":"{1}"}}'.format(ff, str(today.strftime("%d-%m-%Y %H.%M.%S"))).encode('utf-8')
-    print(file_name)
-    file_names_collection.insert_one(json.loads(file_name))
+    if(file_names_collection.find({"file":ff, "size":os.path.getsize(join(mypath,ff))}).count()==0):
+        write_json(ff)
+        today = datetime.today()
+        file_name = '{{"file":"{0}", "date":"{1}", "size":{2}}}'.format(ff, str(today.strftime("%d-%m-%Y %H.%M.%S")),os.path.getsize(join(mypath,ff))).encode('utf-8')
+        file_names_collection.insert_one(json.loads(file_name))
