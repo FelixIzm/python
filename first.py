@@ -1,6 +1,8 @@
-#print("hello world {} {0}".format('fff'))
-
-post = '''{{"author": {0},"text": "text","tags": ["mongodb", "python", "pymongo"],"date": "date"}}'''
-post = post.format("Robert")
-
-print(post)
+import datetime
+a = ['one','','three']
+b={'id':'12345678','fl':a}
+print(len(a))
+print(b)
+print(b['id'])
+today = datetime.datetime.today()
+print( today.strftime("%d-%m-%Y %H.%M.%S") )
