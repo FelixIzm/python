@@ -33,8 +33,8 @@ file_names_collection = db[file_names]
 fx_rec = '''{{"f0": {0},"id": {1},"fl":["{2}","{3}","{4}","{5}","{6}","{7}","{8}","{9}","{10}","{11}"]}}'''
 
 # Собираем названия файлов для обработки
-#mypath="E:\\Temp\\obd\\"
-mypath="c:\\Temp\\obd\\"
+mypath="E:\\Temp\\obd\\"
+#mypath="c:\\Temp\\obd\\"
 
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath, f))]
 
@@ -55,18 +55,18 @@ def write_json(floc):
                     if(row[0].ctype==1 and str(row[0].value).lower()=='id'):
                         continue
                     if(row[0].ctype==1 and str(row[0].value).lower()!='id'):
-                        try:
-                            int1 = int(row[0].value)
-                        except ValueError:
+                        result = re.search(r'(\d+)', row[0].value)
+                        if(result):
+                            str1=int(result.group())
+                        else:
                             continue
                     else:
-                        int1 = int(row[0].value)
-
-                    if(int1):
-                        if i % 1000 == 0:
-                            print(i)
+                        str1 = int(row[0].value)
+                    if(str1):
+                        #if i % 1000 == 0:
+                        #    print(i)
                         try:
-                            ss = fx_rec.format('"обд"', int1, row[2].value.replace('\r','').replace('\n',' '), row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\','').replace('\n',''), str(row[6].value).replace('"','').replace('\\','').replace('\n',''), str(row[7].value).replace('"','').replace('\\','').replace('\n',''),str(row[8].value).replace('"','').replace('\\','').replace('\n',''), row[9].value, row[10].value,row[11].value).replace('\n',' ').replace('\t',' ')
+                            ss = fx_rec.format('"обд"', str1, row[2].value.replace('\r','').replace('\n',' '), row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\','').replace('\n',''), str(row[6].value).replace('"','').replace('\\','').replace('\n',''), str(row[7].value).replace('"','').replace('\\','').replace('\n',''),str(row[8].value).replace('"','').replace('\\','').replace('\n',''), row[9].value, row[10].value,row[11].value)
                             a_rec.append(json.loads(ss))
                         except Exception as ex: 
                             template = "Тип ошибки {0} \nArguments:{1!r}"
@@ -89,18 +89,18 @@ def write_json(floc):
             if(row[0].ctype==1 and str(row[0].value).lower()=='id'):
                 continue
             if(row[0].ctype==1 and str(row[0].value).lower()!='id'):
-                try:
-                    int1 = int(row[0].value)
-                except ValueError:
+                result = re.search(r'(\d+)', row[0].value)
+                if(result):
+                    str1=int(result.group())
+                else:
                     continue
             else:
-                int1 = int(row[0].value)
-            #print('type = {0} value = {1} {2}'.format(row[0].ctype,row[0].value,row[0]))
-            if(int1):
-                if i % 1000 == 0:
-                    print(i)
+                str1 = int(row[0].value)
+            if(str1):
+                #if i % 1000 == 0:
+                #    print('{0} id={1}').format(i,row[0].value)
                 try:
-                    a_rec.append(json.loads(fx_rec.format('"обд"', int1, row[1].value, row[2].value, row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\',''), str(row[6].value).replace('"','').replace('\\',''), str(row[7].value).replace('"','').replace('\\',''),row[8].value, row[9].value, row[10].value).replace('\r','').replace('\n',' ')))
+                    a_rec.append(json.loads(fx_rec.format('"обд"', str1, row[1].value, row[2].value, row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\',''), str(row[6].value).replace('"','').replace('\\',''), str(row[7].value).replace('"','').replace('\\',''),row[8].value, row[9].value, row[10].value).replace('\r','').replace('\n',' ')))
                 except Exception as ex: 
                     template = "Тип ошибки {0} \nArguments:{1!r}"
                     message = template.format(type(ex).__name__, ex.args)
@@ -126,4 +126,4 @@ for ff in onlyfiles:
         file_name = '{{"file":"{0}", "date":"{1}", "size":{2}}}'.format(ff, str(today.strftime("%d-%m-%Y %H.%M.%S")),os.path.getsize(join(mypath,ff))).encode('utf-8')
         file_names_collection.insert_one(json.loads(file_name))
     else:
-        print("file {0}".format(ff))
+        print('file: {0}'.format(ff))

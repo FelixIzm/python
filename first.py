@@ -7,4 +7,4 @@ print(b['id'])
 today = datetime.datetime.today()
 print( today.strftime("%d-%m-%Y %H.%M.%S") )
 str1 = '50574334'
-print(re.findall(r'\d+', str1)[0])
+print(int(re.findall(r'\d+', str1)))
