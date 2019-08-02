@@ -52,15 +52,21 @@ def write_json(floc):
                 for i, row in enumerate(sheet.get_rows()):
                     if(row[0].ctype==0):
                         continue
-                    if(row[0].ctype==1 and row[0].value!='id'):
-                        str1=re.findall(r'\d+', row[0].value)[0]
+                    if(row[0].ctype==1 and str(row[0].value).lower()=='id'):
+                        continue
+                    if(row[0].ctype==1 and str(row[0].value).lower()!='id'):
+                        result = re.search(r'(\d+)', row[0].value)
+                        if(result):
+                            str1=int(result.group())
+                        else:
+                            continue
                     else:
-                        str1 = str(row[0].value)
-                    if(str1.isnumeric()):
-                        if i % 1000 == 0:
-                            print(i)
+                        str1 = int(row[0].value)
+                    if(str1):
+                        #if i % 1000 == 0:
+                        #    print(i)
                         try:
-                            ss = fx_rec.format('"обд"', int(str1), row[2].value.replace('\r','').replace('\n',' '), row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\','').replace('\n',''), str(row[6].value).replace('"','').replace('\\','').replace('\n',''), str(row[7].value).replace('"','').replace('\\','').replace('\n',''),str(row[8].value).replace('"','').replace('\\','').replace('\n',''), row[9].value, row[10].value,row[11].value)
+                            ss = fx_rec.format('"обд"', str1, row[2].value.replace('\r','').replace('\n',' '), row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\','').replace('\n',''), str(row[6].value).replace('"','').replace('\\','').replace('\n',''), str(row[7].value).replace('"','').replace('\\','').replace('\n',''),str(row[8].value).replace('"','').replace('\\','').replace('\n',''), row[9].value, row[10].value,row[11].value)
                             a_rec.append(json.loads(ss))
                         except Exception as ex: 
                             template = "Тип ошибки {0} \nArguments:{1!r}"
@@ -81,15 +87,21 @@ def write_json(floc):
         for i,row in enumerate(sheet.get_rows()):
             if(row[0].ctype==0):
                 continue
-            if(row[0].ctype==1 and row[0].value!='id'):
-                str1=re.findall(r'\d+', row[0].value)[0]
+            if(row[0].ctype==1 and str(row[0].value).lower()=='id'):
+                continue
+            if(row[0].ctype==1 and str(row[0].value).lower()!='id'):
+                result = re.search(r'(\d+)', row[0].value)
+                if(result):
+                    str1=int(result.group())
+                else:
+                    continue
             else:
-                str1 = str(row[0].value)
-            if(str1.isnumeric()):
-                if i % 1000 == 0:
-                    print('{0} id={1}').format(i,row[0].value)
+                str1 = int(row[0].value)
+            if(str1):
+                #if i % 1000 == 0:
+                #    print('{0} id={1}').format(i,row[0].value)
                 try:
-                    a_rec.append(json.loads(fx_rec.format('"обд"', int(str1), row[1].value, row[2].value, row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\',''), str(row[6].value).replace('"','').replace('\\',''), str(row[7].value).replace('"','').replace('\\',''),row[8].value, row[9].value, row[10].value).replace('\r','').replace('\n',' ')))
+                    a_rec.append(json.loads(fx_rec.format('"обд"', str1, row[1].value, row[2].value, row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\',''), str(row[6].value).replace('"','').replace('\\',''), str(row[7].value).replace('"','').replace('\\',''),row[8].value, row[9].value, row[10].value).replace('\r','').replace('\n',' ')))
                 except Exception as ex: 
                     template = "Тип ошибки {0} \nArguments:{1!r}"
                     message = template.format(type(ex).__name__, ex.args)
@@ -114,3 +126,5 @@ for ff in onlyfiles:
         today = datetime.today()
         file_name = '{{"file":"{0}", "date":"{1}", "size":{2}}}'.format(ff, str(today.strftime("%d-%m-%Y %H.%M.%S")),os.path.getsize(join(mypath,ff))).encode('utf-8')
         file_names_collection.insert_one(json.loads(file_name))
+    else:
+        print('file: {0}'.format(ff))
