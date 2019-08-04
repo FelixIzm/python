@@ -5,16 +5,17 @@ from os import listdir
 from os.path import isfile, join
 
 
+
 client = MongoClient('35.193.230.58',
     username='felix', password='12345678', 
-    authSource='test',authMechanism='SCRAM-SHA-1')
+    authSource='obd',authMechanism='SCRAM-SHA-1')
 
-db = client['test']
+db = client['obd']
 collection_name = 'data'
+
 if collection_name not in db.list_collection_names():
     db.create_collection(collection_name)
     db[collection_name].create_index("id", unique=True)
-     
 records = db[collection_name]
 count_doc_start = records.count_documents({})
 
@@ -27,19 +28,34 @@ if file_names not in db.list_collection_names():
 )
 file_names_collection = db[file_names]
 
-#loc = ("E:\\Temp\\obd\\москворецкий_рвк.xlsx") 
+#    "from": {0}, "id": {1}, "Фамилия":"{2}","Имя":"{3}","Отчество":"{4}","Дата рождения/Возраст":"{5}","Место рождения":"{6}",
+#   "Дата и место призыва":"{7}","Последнее место службы":"{8}","Воинское звание":"{9}","Причина выбытия":"{10}","Дата выбытия":"{11}"
 
-#fx_rec = '''{{"f0": {0},"id": {1},"f2":"{2}","f3":"{3}","f4":"{4}","f5":"{5}","f6":"{6}","f7":"{7}","f8":"{8}","f9":"{9}","f10":"{10}","f11":"{11}"}}'''
-fx_rec = '''{{"f0": {0},"id": {1},"fl":["{2}","{3}","{4}","{5}","{6}","{7}","{8}","{9}","{10}","{11}"]}}'''
+
+fx_rec = '''{{"f0": {0},"id": {1},"f2":"{2}","f3":"{3}","f4":"{4}","f5":"{5}","f6":"{6}","f7":"{7}","f8":"{8}","f9":"{9}","f10":"{10}","f11":"{11}"}}'''
+#fx_rec = '''{{"f0": {0},"id": {1},"fl":["{2}","{3}","{4}","{5}","{6}","{7}","{8}","{9}","{10}","{11}"]}}'''
 
 # Собираем названия файлов для обработки
-#mypath="E:\\Temp\\obd\\"
-mypath="c:\\Temp\\obd\\"
+mypath="E:\\Temp\\obd\\"
+#mypath="c:\\Temp\\obd\\"
 
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath, f))]
 
+write_data = True
+
+def cnv_cell(cell):
+    if(cell.ctype == 3):
+        dt = xlrd.xldate_as_datetime(cell.value, 0)
+        str_date = datetime.strftime(dt,'%m.%d.%Y')
+    elif(cell.ctype==1):
+        str_date = cell.value.replace('\r','').replace('\t','').replace('\n',' ').replace('"','').replace('\\','')
+    else:
+        str_date = cell.value
+    return str_date
+
+
 def write_json(floc):
-    global mypath
+    global mypath, write_data
     a_rec=[]
     #Открываем ексель
     start_time = datetime.now()
@@ -63,7 +79,7 @@ def write_json(floc):
                                 template = "Int () Тип ошибки {0} \nArguments:{1!r}"
                                 message = template.format(type(ex).__name__, ex.args)
                                 print(message)
-                                print(ss)
+                                print(row)
                                 sys.exit(0)  
                         else:
                             continue
@@ -72,8 +88,13 @@ def write_json(floc):
                     if(str1):
                         #if i % 1000 == 0:
                         #    print(i)
+
                         try:
-                            ss = fx_rec.format('"обд"', str1, row[2].value.replace('\r','').replace('\n',' '), row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\','').replace('\n',''), str(row[6].value).replace('"','').replace('\\','').replace('\n',''), str(row[7].value).replace('"','').replace('\\','').replace('\n',''),str(row[8].value).replace('"','').replace('\\','').replace('\n',''), row[9].value, row[10].value,row[11].value)
+                            cell11 = cnv_cell(row[11])
+                            cell05 = cnv_cell(row[5])
+                            ss = fx_rec.format('"обд"', str1, cnv_cell(row[2]), cnv_cell(row[3]), 
+                                cnv_cell(row[4]), cell05, cnv_cell(row[6]), cnv_cell(row[7]),
+                                cnv_cell(row[8]), cnv_cell(row[9]), cnv_cell(row[10]),cell11)
                             a_rec.append(json.loads(ss))
                         except Exception as ex: 
                             template = "Тип ошибки {0} \nArguments:{1!r}"
@@ -105,9 +126,15 @@ def write_json(floc):
             if(str1):
                 try:
                     if(re.search(r'Человек', row[1].value)):
-                        a_rec.append(json.loads(fx_rec.format('"обд"', str1, row[2].value.replace('\r','').replace('\n',' '), row[3].value, row[4].value, str(row[5].value).replace('"','').replace('\\','').replace('\n',''), str(row[6].value).replace('"','').replace('\\','').replace('\n',''), str(row[7].value).replace('"','').replace('\\','').replace('\n',''),str(row[8].value).replace('"','').replace('\\','').replace('\n',''), row[9].value, row[10].value,row[11].value)))
+                        cell11 = cnv_cell(row[11])
+                        cell05 = cnv_cell(row[5])
+                        a_rec.append(json.loads(fx_rec.format('"обд"', str1, cnv_cell(row[2]), cnv_cell(row[3]), cnv_cell(row[4]), 
+                        cell05, cnv_cell(row[6]), cnv_cell(row[7]),cnv_cell(row[8]), cnv_cell(row[9]), cnv_cell(row[10]),cell11)))
                     else:
-                        a_rec.append(json.loads(fx_rec.format('"обд"', str1, row[1].value, row[2].value, row[3].value, row[4].value, str(row[5].value).replace('"',''), str(row[6].value).replace('"',''), str(row[7].value).replace('"',''),row[8].value.replace('"',''), row[9].value, row[10].value).replace('\\','').replace('\r','').replace('\n',' ')))
+                        cell10 = cnv_cell(row[10])
+                        cell04 = cnv_cell(row[4])
+                        a_rec.append(json.loads(fx_rec.format('"обд"', str1, cnv_cell(row[1]), cnv_cell(row[2]), cnv_cell(row[3]), cell04, cnv_cell(row[5]), cnv_cell(row[6]), 
+                            cnv_cell(row[7]),cnv_cell(row[8]), cnv_cell(row[9]), cell10)))
                 except Exception as ex: 
                     template = "Тип ошибки {0} \nArguments:{1!r}"
                     message = template.format(type(ex).__name__, ex.args)
@@ -115,11 +142,12 @@ def write_json(floc):
                     print(row)
                     sys.exit(0)
         # Пишем в коллекцию МонгоДБ
-        try:
-            records.insert_many(a_rec, ordered=False)
-        except pymongo.errors.BulkWriteError as e:
-            print('writeErrors')
-        # Подсчитываем затраченное время
+        if(write_data):
+            try:
+                records.insert_many(a_rec, ordered=False)
+            except pymongo.errors.BulkWriteError as e:
+                print('writeErrors')
+    # Подсчитываем затраченное время
     count_doc_end = records.count_documents({})
     end_time = datetime.now()
     print('Duration: {}'.format(end_time - start_time))
@@ -128,11 +156,11 @@ def write_json(floc):
 ####################
 for ff in onlyfiles:
     if(file_names_collection.find({"file":ff}).count()==0):
-        
         print('{0} {1}'.format(ff,os.path.getsize(join(mypath,ff))))
         write_json(ff)
-        today = datetime.today()
-        file_name = '{{"file":"{0}", "date":"{1}", "size":{2}}}'.format(ff, str(today.strftime("%d-%m-%Y %H.%M.%S")),os.path.getsize(join(mypath,ff))).encode('utf-8')
-        file_names_collection.insert_one(json.loads(file_name))
+        if(write_data):
+            today = datetime.today()
+            file_name = '{{"file":"{0}", "date":"{1}", "size":{2}}}'.format(ff, str(today.strftime("%d-%m-%Y %H.%M.%S")),os.path.getsize(join(mypath,ff))).encode('utf-8')
+            file_names_collection.insert_one(json.loads(file_name))
     else:
         print('file: {0}'.format(ff))
